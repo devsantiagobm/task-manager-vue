@@ -1,0 +1,48 @@
+:root {
+
+    --red-500: hsl(0, 91%, 71%);
+    --red-400: hsl(0, 91%, 75%);
+    --red-100: hsl(0, 93%, 94%);
+
+    --orange-500: hsl(35, 99%, 51%);
+    --orange-100: hsl(35, 99%, 88%);
+
+    --yellow-500: hsl(48, 96%, 53%);
+    --yellow-400: hsl(48, 96%, 60%);
+    --yellow-200: hsl(48, 96%, 65%);
+    --yellow-100: hsl(55, 97%, 88%);
+
+    --cyan-500: #22d3ee;
+    --cyan-100: #cffafe;
+
+    --green-500: #4ade80;
+    --green-100: #dcfce7;
+
+    --neutral-0: #ffffff;
+    --neutral-50: #f9f9f9;
+    --neutral-100: #f3f3f3;
+    --neutral-200: #e4e4e4;
+    --neutral-300: #d1d1d1;
+    --neutral-400: #b0b0b0;
+    --neutral-500: #8e8e8e;
+    --neutral-600: #7c7c7c;
+    --neutral-700: #4a4a4a;
+    --neutral-800: #2e2e2e;
+    --neutral-900: #1a1a1a;
+    --neutral-950: #0a0a0a;
+    /* Font weights */
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+}
+
+
+body {
+    font-family: "Lexend Deca", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: var(--font-weight-regular);
+    font-style: normal;
+    color: var(--neutral-900);
+    background-color: var(--neutral-50);
+}
