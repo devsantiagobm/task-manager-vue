@@ -37,6 +37,10 @@
     --font-weight-bold: 700;
 }
 
+::selection{
+    background-color: var(--yellow-500);
+    color: var(--neutral-0);
+}
 
 body {
     font-family: "Lexend Deca", sans-serif;

@@ -4,7 +4,7 @@ import { Icon } from '@iconify/vue';
 </script>
 
 <template>
-    <navbar class="navbar">
+    <nav class="navbar">
         <h3 class="navbar__title">Menu</h3>
 
         <label class="navbar__search">
@@ -46,7 +46,7 @@ import { Icon } from '@iconify/vue';
 
 
         </div>
-    </navbar>
+    </nav>
 </template>
 
 <style lang="scss" scoped>
