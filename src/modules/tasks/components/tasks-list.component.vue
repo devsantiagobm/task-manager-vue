@@ -1,53 +1,28 @@
 <script setup lang="ts">
+
 import ButtonAtom from '@/system-design/atoms/button.atom.vue';
-import CheckboxAtom from '@/system-design/atoms/checkbox.atom.vue';
 import { dateToText } from '@/utils/date-to-text.util';
 import { Icon } from '@iconify/vue';
-import { ref } from 'vue';
+import { onMounted } from 'vue';
+import { useTasksStore } from '../stores/tasks.store';
+import { toast } from 'vue-sonner';
 
+const tasksStore = useTasksStore()
 
-const notes = ref<Note[]>([
-    {
-        id: 1,
-        title: 'Comprar víveres',
-        description: 'Leche, pan, huevos y frutas',
-        isPending: false,
-        createdAt: '2025-06-18T09:15:00Z',
-        lastUpdated: '2025-06-18T09:15:00Z'
-    },
-    {
-        id: 2,
-        title: 'Revisar emails del trabajo',
-        description: 'Responder correos importantes y organizar la bandeja asdmjkdajsakdljadlksjdlkajdskldjakdjadlkjdljsdal',
-        isPending: false,
-        createdAt: '2025-06-17T14:30:00Z',
-        lastUpdated: '2025-06-18T08:45:00Z'
-    },
-    {
-        id: 3,
-        title: 'Estudiar Vue 3',
-        description: 'Leer sobre script setup, composición y Pinia',
-        isPending: false,
-        createdAt: '2025-06-16T19:00:00Z',
-        lastUpdated: '2025-06-16T19:00:00Z'
-    },
-    {
-        id: 4,
-        title: 'Llamar al médico',
-        description: 'Agendar cita para revisión anual',
-        isPending: false,
-        createdAt: '2025-06-15T11:10:00Z',
-        lastUpdated: '2025-06-17T07:30:00Z'
-    },
-    {
-        id: 5,
-        title: 'Actualizar portafolio',
-        description: 'Agregar últimos proyectos y mejoras en UI',
-        isPending: false,
-        createdAt: '2025-06-14T13:45:00Z',
-        lastUpdated: '2025-06-14T13:45:00Z'
-    }
-])
+onMounted(() => {
+    tasksStore.getTasks()
+})
+
+function toggleCompletedNote({ id, isComplete }: { id: number, isComplete: boolean }) {
+    const action = isComplete ? 'Marking as complete' : 'Marking as pending';
+    const successMessage = isComplete ? 'Task marked as complete.' : 'Task marked as pending.';
+
+    toast.promise(tasksStore.updateTask({ id, isComplete }), {
+        loading: `${action}...`,
+        success: () => successMessage,
+        error: () => `Something went wrong while ${action.toLowerCase()}.`,
+    });
+}
 
 </script>
 
@@ -58,7 +33,7 @@ const notes = ref<Note[]>([
     </header>
 
     <section class="task-list__content">
-        <ButtonAtom variant="outline" class="task-list__create-button">
+        <ButtonAtom variant="outline" class="task-list__create-button" @click="tasksStore.clearSelectedTask">
             <Icon icon="mi:add" width="20" height="20" />
             <span>Add New Task</span>
         </ButtonAtom>
@@ -67,9 +42,17 @@ const notes = ref<Note[]>([
         <!-- //TODO CUANDO NO HAYAN NOTAS PONER UN ICONO DICIENDO CREATA TU NOTA -->
 
         <div class="task-list__list">
-            <button class="task-list__task" v-for="note in notes" :key="note.id">
+            <button class="task-list__task" v-for="note in tasksStore.tasks" :key="note.id"
+                @click="tasksStore.selectTask(note)"
+                :class="{ 'task-list__task--active': note.id === tasksStore?.selectedTask?.id }">
                 <div class="task-list__task-content">
-                    <CheckboxAtom v-model="note.isPending" />
+
+                    <button class="task-list__checkbox-button"
+                        :class="{ 'task-list__checkbox-button--active': note.isComplete }" 
+                        type="button" :disabled='tasksStore.status.updateTask.isLoading'
+                        @click.stop="() => toggleCompletedNote({ id: note.id, isComplete: !note.isComplete })" 
+                    />
+
                     <div class="task-list__task-texts">
                         <span class="task-list__task-title">
                             <span>{{ note.title }}</span>
@@ -134,6 +117,10 @@ const notes = ref<Note[]>([
         border-bottom: 1px solid var(--neutral-300);
         transition: background-color 0.2s ease;
 
+        &--active {
+            background-color: var(--neutral-100);
+        }
+
 
         @media (hover: hover) {
             &:hover {
@@ -158,6 +145,8 @@ const notes = ref<Note[]>([
             gap: 2px;
         }
 
+        //TODO ARREGLAR PARA QUE EL MAX-WIDTH SEA VARIABLE
+
         &-title {
             font-size: 0.9rem;
             font-weight: 500;
@@ -167,7 +156,6 @@ const notes = ref<Note[]>([
             gap: 8px;
         }
 
-        //TODO ARREGLAR PARA QUE EL MAX-WIDTH SEA VARIABLE
         &-description {
             font-size: 0.85rem;
             color: var(--neutral-500);
@@ -198,10 +186,82 @@ const notes = ref<Note[]>([
         }
 
         @media (hover:hover) {
-            &:hover &-arrow {
+            &:hover:not(&--active) &-arrow {
                 transform: translateX(2px);
             }
         }
     }
+
+
+
+
+    &__checkbox-button {
+        $primary-color: var(--yellow-500);
+        $primary-hover-color: var(--yellow-200);
+        $secondary-color: #fff;
+
+        $checkbox-size: 18px;
+        $border-radius: 4px;
+        $border-color: #d9d9d9;
+        $checkmark-size: 1.4;
+
+        width: $checkbox-size;
+        height: $checkbox-size;
+        border-radius: $border-radius;
+        background-color: $secondary-color;
+        border: 1px solid $border-color;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.3s ease;
+        padding: 0;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            width: 4px;
+            height: 7px;
+            border-right: 2px solid $secondary-color;
+            border-bottom: 2px solid $secondary-color;
+            transform: translate(-50%, -50%) rotate(45deg) scale(0);
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        &::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            box-shadow: 0 0 0 calc($checkbox-size / 2.5) $primary-color;
+            border-radius: inherit;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.12, 0.4, 0.29, 1.46);
+        }
+
+
+        @media (hover:hover) {
+            &:hover {
+                border-color: $primary-hover-color;
+            }
+        }
+
+        &--active {
+            background-color: $primary-color;
+            border-color: transparent;
+
+            &::before {
+                opacity: 1;
+                transform: translate(-50%, -50%) rotate(45deg) scale($checkmark-size);
+            }
+        }
+
+        &:active:not(.checkbox-button--active)::after {
+            transition: none;
+            box-shadow: none;
+            opacity: 1;
+        }
+    }
+
 }
 </style>

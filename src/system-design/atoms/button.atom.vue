@@ -7,6 +7,8 @@ interface Props {
 }
 
 const { fitContent = false, alignment = "left", variant = "action" } = defineProps<Props>()
+defineEmits<{ (e: "click"): void }>()
+
 </script>
 
 <template>
@@ -14,7 +16,7 @@ const { fitContent = false, alignment = "left", variant = "action" } = definePro
         `button--${variant}`,
         `button--${alignment}`,
         fitContent && 'button--fit-content'
-    ]">
+    ]" @click="$emit('click')">
         <slot />
     </button>
 </template>

@@ -32,9 +32,17 @@ import TasksFormComponent from '../components/tasks-form.component.vue';
     gap: 20px;
     max-width: 100%;
 
-    &__navbar, &__content, &__form{
-        // max-height: 100%;
-        overflow: hidden;
+    &__navbar,
+    &__content,
+    &__form {
+        max-height: 100%;
+        overflow-y: auto;
+
+        padding-right: 4px;
+
+        scrollbar-width: thin;
+        scrollbar-gutter: stable;
+        scrollbar-color: var(--neutral-300) transparent;
     }
 
     &__navbar {
