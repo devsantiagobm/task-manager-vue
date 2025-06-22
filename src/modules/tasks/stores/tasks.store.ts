@@ -90,7 +90,7 @@ export const useTasksStore = defineStore("tasks", {
                 })
                 this.tasks = response.data.map(getTasksAdapter)
             } catch (err: any) {
-                //TODO TIPAR BIEN ESTO
+                //TODO TIPAR BIEN ESTO y MOSTRAR EL ERROR CORRECTAMENTE
                 this.status.getTasks.error = err.message || 'Error fetching tasks'
             } finally {
                 this.status.getTasks.isLoading = false

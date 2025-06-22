@@ -5,6 +5,8 @@ import { ErrorMessage, useForm } from 'vee-validate';
 import { useTasksStore } from '../stores/tasks.store';
 import { toast } from 'vue-sonner';
 import { dateToText } from '@/utils/date-to-text.util';
+import { computed, watch } from 'vue';
+import { AnimatePresence, motion } from 'motion-v';
 
 interface Inputs {
     title: string;
@@ -13,6 +15,7 @@ interface Inputs {
 
 
 const tasksStore = useTasksStore()
+const mustDisableButtons = computed(() => tasksStore.status.deleteTask.isLoading || tasksStore.status.updateTask.isLoading || tasksStore.status.createTask.isLoading)
 
 const { setValues, handleSubmit, errors, defineField, resetForm, } = useForm<Inputs>({
     validationSchema: {
@@ -74,7 +77,6 @@ function deleteTask() {
 }
 
 
-import { watch } from 'vue';
 
 watch(
     () => tasksStore.selectedTask,
@@ -96,7 +98,6 @@ watch(
     <form class="task-form" novalidate @submit="onSubmit">
 
         <div class="task-form__content">
-            <!-- TODO ACA CAMBIAR EL TEXTO BASADO EN SI ES CREACON O UPDATE -->
             <div class="task-form__header">
                 <h3 class="task-form__title">{{ tasksStore.selectedTask ? "Update Task" : "New Task" }}</h3>
 
@@ -110,11 +111,18 @@ watch(
                 <input v-model="title" v-bind="titleAttrs" name="title" type="text" class="task-form__input"
                     placeholder="What do you need to do?" :class="{ 'task-form__input--error': errors?.title }" />
 
-                <!-- //TODO ANIMACION -->
-                <span v-if="errors.title" class="task-form__input-error-message">
-                    <Icon icon="ri:error-warning-line" width="14" height="14" />
-                    <ErrorMessage name="title" />
-                </span>
+
+                <AnimatePresence>
+                    <motion.span v-if="errors.title" class="task-form__input-error-message"
+                        :initial="{ maxHeight: 0, paddingTop: 0, opacity: 0 }"
+                        :animate="{ maxHeight: 'auto', paddingTop: 16, opacity: 1 }"
+                        :exit="{ maxHeight: 0, paddingTop: 0, opacity: 0 }"
+                        :transition="{ duration: 0.3, ease: 'easeInOut' }">
+
+                        <Icon icon="ri:error-warning-line" width="14" height="14" />
+                        <ErrorMessage name="title" />
+                    </motion.span>
+                </AnimatePresence>
             </label>
 
 
@@ -158,23 +166,37 @@ watch(
                     placeholder="Write a brief description" v-model="description" v-bind="descriptionAttrs"
                     :class="{ 'task-form__input--error': errors?.description }" />
 
-                <span v-if="errors.description" class="task-form__input-error-message">
-                    <Icon icon="ri:error-warning-line" width="14" height="14" />
-                    <ErrorMessage name="description" />
-                </span>
+                <AnimatePresence>
+                    <motion.span v-if="errors.description" class="task-form__input-error-message"
+                        :initial="{ maxHeight: 0, paddingTop: 0, opacity: 0 }"
+                        :animate="{ maxHeight: 'auto', paddingTop: 16, opacity: 1 }"
+                        :exit="{ maxHeight: 0, paddingTop: 0, opacity: 0 }"
+                        :transition="{ duration: 0.3, ease: 'easeInOut' }">
+
+                        <Icon icon="ri:error-warning-line" width="14" height="14" />
+                        <ErrorMessage name="description" />
+                    </motion.span>
+                </AnimatePresence>
             </label>
         </div>
 
-        <!-- //TODO ESTOS BOTONES DARLES DISABLED BASADO EN SI SE ESTA LLAMANDO SU RESPECTIVO ENDPOINT-->
+        <motion.div class="task-form__buttons" :initial="{ opacity: 0, y: 10 }" :animate="{ opacity: 1, y: 0 }"
+            :key="typeof tasksStore?.selectedTask?.id" :transition="{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }">
 
-        <div class="task-form__buttons">
-            <!-- //TODO MODAL DE CONFIRMACION DE ELIMINAR -->
-            <ButtonAtom @click="deleteTask" variant="outline" alignment="center" type="button"
-                v-if="tasksStore.selectedTask">Delete Task</ButtonAtom>
-            <ButtonAtom alignment="center">{{ tasksStore.selectedTask ? 'Save Changes' : 'Create Task' }}</ButtonAtom>
-        </div>
+            <!-- TODO MODAL DE CONFIRMACION DE ELIMINAR -->
+            <ButtonAtom :disabled="mustDisableButtons" @click="deleteTask" variant="outline" alignment="center"
+                type="button" v-if="tasksStore.selectedTask">
+                Delete Task
+            </ButtonAtom>
+
+            <ButtonAtom alignment="center" :disabled="mustDisableButtons">
+                {{ tasksStore.selectedTask ? 'Save Changes' : 'Create Task' }}
+            </ButtonAtom>
+        </motion.div>
+
     </form>
 </template>
+
 
 <style scoped lang="scss">
 .task-form {
@@ -260,6 +282,7 @@ watch(
         place-items: center;
         color: var(--neutral-700);
         transition: background-color .2s ease;
+        display: none;
 
         @media (hover:hover) {
             &:hover {
@@ -317,8 +340,7 @@ watch(
             align-items: center;
             color: var(--red-500);
             font-size: .8rem;
-            padding: 8px 0 0;
-
+            text-wrap: nowrap;
         }
     }
 
