@@ -1,5 +1,31 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
+import { useTasksStore, type FilterType } from '../stores/tasks.store';
+import { computed } from 'vue';
+
+const tasksStore = useTasksStore()
+
+const filters = computed(() => [
+    {
+        label: "All Tasks",
+        icon: "flowbite:clipboard-list-outline",
+        value: "all",
+        stat: tasksStore.taskStats.total,
+    },
+    {
+        label: "Completed",
+        icon: "mdi:check-circle-outline",
+        value: "completed",
+        stat: tasksStore.taskStats.completed,
+    },
+    {
+        label: "Pending",
+        icon: "mdi:clock-outline",
+        value: "pending",
+        stat: tasksStore.taskStats.pending,
+    },
+])
+
 
 </script>
 
@@ -9,38 +35,22 @@ import { Icon } from '@iconify/vue';
 
         <label class="navbar__search">
             <Icon icon="lucide:search" />
-            <input type="text" class="navbar__search-input" placeholder="Search your tasks">
+            <input type="text" class="navbar__search-input" placeholder="Search your tasks" @input="(e) => tasksStore.setSearchQuery((e.target as HTMLInputElement).value)">
         </label>
 
         <div class="navbar__tasks">
             <h4 class="navbar__tasks-title">Tasks</h4>
 
             <div class="navbar__buttons-list">
-                <button class="navbar__button navbar__button--active">
+                <button class="navbar__button"
+                    :class="{ 'navbar__button--active': filter.value === tasksStore.filterType }"
+                    v-for="filter in filters" @click="() => tasksStore.setFilterType(filter.value as FilterType)">
                     <div class="navbar__button-content">
-
-                        <Icon icon="flowbite:clipboard-list-outline" width="18" height="18" />
-                        <span>All Tasks</span>
+                        <Icon :icon="filter.icon" width="18" height="18" />
+                        <span>{{ filter.label }}</span>
                     </div>
 
-                    <span class="navbar__button-amount">15</span>
-                </button>
-                <button class="navbar__button">
-                    <div class="navbar__button-content">
-
-                        <Icon icon="mdi:check-circle-outline" width="18" height="18" />
-                        <span>Completed</span>
-                    </div>
-
-                    <span class="navbar__button-amount">0</span>
-                </button>
-                <button class="navbar__button">
-                    <div class="navbar__button-content">
-                        <Icon icon="mdi:clock-outline" width="18" height="18" />
-                        <span>Pending</span>
-                    </div>
-
-                    <span class="navbar__button-amount">8</span>
+                    <span class="navbar__button-amount">{{ filter.stat }}</span>
                 </button>
             </div>
 
@@ -116,7 +126,8 @@ import { Icon } from '@iconify/vue';
         transition: background-color .2s ease, color .2s ease;
 
 
-        &:hover, &--active {
+        &:hover,
+        &--active {
             background-color: var(--neutral-200);
             color: var(--neutral-800)
         }
@@ -139,7 +150,8 @@ import { Icon } from '@iconify/vue';
         }
 
 
-        &:hover &-amount, &--active &-amount {
+        &:hover &-amount,
+        &--active &-amount {
             background-color: var(--neutral-100);
         }
     }

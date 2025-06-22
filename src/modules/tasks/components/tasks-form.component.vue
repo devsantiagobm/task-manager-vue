@@ -60,7 +60,7 @@ const onSubmit = handleSubmit(async (values) => {
     }
 });
 
-function deleteNote() {
+function deleteTask() {
     if (!tasksStore.selectedTask) return;
 
     toast.promise(tasksStore.deleteTask(tasksStore.selectedTask.id), {
@@ -169,7 +169,7 @@ watch(
 
         <div class="task-form__buttons">
             <!-- //TODO MODAL DE CONFIRMACION DE ELIMINAR -->
-            <ButtonAtom @click="deleteNote" variant="outline" alignment="center" type="button"
+            <ButtonAtom @click="deleteTask" variant="outline" alignment="center" type="button"
                 v-if="tasksStore.selectedTask">Delete Task</ButtonAtom>
             <ButtonAtom alignment="center">{{ tasksStore.selectedTask ? 'Save Changes' : 'Create Task' }}</ButtonAtom>
         </div>

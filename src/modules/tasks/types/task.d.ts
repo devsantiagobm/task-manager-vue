@@ -1,4 +1,4 @@
-interface Note {
+interface Task {
     id: string | int;
     title: string;
     description: string;
