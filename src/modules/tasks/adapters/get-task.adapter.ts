@@ -1,8 +1,8 @@
-import type { RawNote } from "../types/raw-note";
+import type { RawTask } from "../types/raw-task";
 
 
 
-export function getNotesAdapter(raw: RawNote): Note {
+export function getTasksAdapter(raw: RawTask): Task {
     return {
         id: raw.id,
         title: raw.title,

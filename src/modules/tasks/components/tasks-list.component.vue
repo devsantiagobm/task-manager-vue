@@ -3,7 +3,7 @@
 import ButtonAtom from '@/system-design/atoms/button.atom.vue';
 import { dateToText } from '@/utils/date-to-text.util';
 import { Icon } from '@iconify/vue';
-import { onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useTasksStore } from '../stores/tasks.store';
 import { toast } from 'vue-sonner';
 
@@ -13,7 +13,30 @@ onMounted(() => {
     tasksStore.getTasks()
 })
 
-function toggleCompletedNote({ id, isComplete }: { id: number, isComplete: boolean }) {
+//TODO CAMBIAR TODEOS LOS NOTES POR TASKS
+
+const title = computed(() => {
+    const titles = {
+        all: "All Tasks",
+        completed: "Completed Tasks",
+        pending: "Pending Tasks"
+    }
+
+    return titles[tasksStore.filterType]
+})
+
+const amountOfTasks = computed(() => {
+  const filter = tasksStore.filterType
+
+  if (filter === 'all') return tasksStore.taskStats.total
+  if (filter === 'completed') return tasksStore.taskStats.completed
+  if (filter === 'pending') return tasksStore.taskStats.pending
+
+  return 0
+})
+
+
+function toggleCompletedTask({ id, isComplete }: { id: number, isComplete: boolean }) {
     const action = isComplete ? 'Marking as complete' : 'Marking as pending';
     const successMessage = isComplete ? 'Task marked as complete.' : 'Task marked as pending.';
 
@@ -28,8 +51,8 @@ function toggleCompletedNote({ id, isComplete }: { id: number, isComplete: boole
 
 <template>
     <header class="task-list__header">
-        <h1 class="task-list__title">All Tasks</h1>
-        <span class="task-list__amount">5</span>
+        <h1 class="task-list__title">{{ title }}</h1>
+        <span class="task-list__amount">{{ amountOfTasks }}</span>
     </header>
 
     <section class="task-list__content">
@@ -42,29 +65,28 @@ function toggleCompletedNote({ id, isComplete }: { id: number, isComplete: boole
         <!-- //TODO CUANDO NO HAYAN NOTAS PONER UN ICONO DICIENDO CREATA TU NOTA -->
 
         <div class="task-list__list">
-            <button class="task-list__task" v-for="note in tasksStore.tasks" :key="note.id"
-                @click="tasksStore.selectTask(note)"
-                :class="{ 'task-list__task--active': note.id === tasksStore?.selectedTask?.id }">
+            <button class="task-list__task" v-for="task in tasksStore.filteredTasks" :key="task.id"
+                @click="tasksStore.selectTask(task.id)"
+                :class="{ 'task-list__task--active': task.id === tasksStore?.selectedTask?.id }">
                 <div class="task-list__task-content">
 
                     <button class="task-list__checkbox-button"
-                        :class="{ 'task-list__checkbox-button--active': note.isComplete }" 
-                        type="button" :disabled='tasksStore.status.updateTask.isLoading'
-                        @click.stop="() => toggleCompletedNote({ id: note.id, isComplete: !note.isComplete })" 
-                    />
+                        :class="{ 'task-list__checkbox-button--active': task.isComplete }" type="button"
+                        :disabled='tasksStore.status.updateTask.isLoading'
+                        @click.stop="() => toggleCompletedTask({ id: task.id, isComplete: !task.isComplete })" />
 
                     <div class="task-list__task-texts">
                         <span class="task-list__task-title">
-                            <span>{{ note.title }}</span>
+                            <span>{{ task.title }}</span>
 
                             <span class="task-list__task-separator"></span>
 
                             <span class="task-list__task-date">
                                 <Icon icon="material-symbols:calendar-today-outline" width="12" height="12" />
-                                {{ dateToText(note.createdAt) }}
+                                {{ dateToText(task.createdAt) }}
                             </span>
                         </span>
-                        <span class="task-list__task-description">{{ note.description }}</span>
+                        <span class="task-list__task-description">{{ task.description }}</span>
                     </div>
                 </div>
 

@@ -1,4 +1,4 @@
-export interface RawNote {
+export interface RawTask {
     created_at: Date;
     description: string;
     id: number;
