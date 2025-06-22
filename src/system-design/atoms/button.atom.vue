@@ -33,6 +33,10 @@ defineEmits<{ (e: "click"): void }>()
     cursor: pointer;
     transition: background-color .2s ease, color .2s ease, outline .2s ease;
 
+    &[disabled]{
+        cursor: not-allowed;
+    }
+
     &--fit-content {
         width: fit-content;
     }

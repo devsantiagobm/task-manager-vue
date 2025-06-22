@@ -6,14 +6,14 @@ import { Icon } from '@iconify/vue';
 import { computed, onMounted } from 'vue';
 import { useTasksStore } from '../stores/tasks.store';
 import { toast } from 'vue-sonner';
+import { AnimatePresence, LayoutGroup, motion } from "motion-v"
+import TasksEmptystateComponent from './tasks-emptystate-.component.vue';
 
 const tasksStore = useTasksStore()
 
 onMounted(() => {
     tasksStore.getTasks()
 })
-
-//TODO CAMBIAR TODEOS LOS NOTES POR TASKS
 
 const title = computed(() => {
     const titles = {
@@ -26,15 +26,14 @@ const title = computed(() => {
 })
 
 const amountOfTasks = computed(() => {
-  const filter = tasksStore.filterType
+    const filter = tasksStore.filterType
 
-  if (filter === 'all') return tasksStore.taskStats.total
-  if (filter === 'completed') return tasksStore.taskStats.completed
-  if (filter === 'pending') return tasksStore.taskStats.pending
+    if (filter === 'all') return tasksStore.taskStats.total
+    if (filter === 'completed') return tasksStore.taskStats.completed
+    if (filter === 'pending') return tasksStore.taskStats.pending
 
-  return 0
+    return 0
 })
-
 
 function toggleCompletedTask({ id, isComplete }: { id: number, isComplete: boolean }) {
     const action = isComplete ? 'Marking as complete' : 'Marking as pending';
@@ -50,10 +49,13 @@ function toggleCompletedTask({ id, isComplete }: { id: number, isComplete: boole
 </script>
 
 <template>
-    <header class="task-list__header">
+    <motion.header class="task-list__header" :initial="{ opacity: 0, y: -10 }" :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }" :key="title">
         <h1 class="task-list__title">{{ title }}</h1>
         <span class="task-list__amount">{{ amountOfTasks }}</span>
-    </header>
+
+    </motion.header>
+
 
     <section class="task-list__content">
         <ButtonAtom variant="outline" class="task-list__create-button" @click="tasksStore.clearSelectedTask">
@@ -62,40 +64,66 @@ function toggleCompletedTask({ id, isComplete }: { id: number, isComplete: boole
         </ButtonAtom>
 
 
-        <!-- //TODO CUANDO NO HAYAN NOTAS PONER UN ICONO DICIENDO CREATA TU NOTA -->
 
-        <div class="task-list__list">
-            <button class="task-list__task" v-for="task in tasksStore.filteredTasks" :key="task.id"
-                @click="tasksStore.selectTask(task.id)"
-                :class="{ 'task-list__task--active': task.id === tasksStore?.selectedTask?.id }">
-                <div class="task-list__task-content">
-
-                    <button class="task-list__checkbox-button"
-                        :class="{ 'task-list__checkbox-button--active': task.isComplete }" type="button"
-                        :disabled='tasksStore.status.updateTask.isLoading'
-                        @click.stop="() => toggleCompletedTask({ id: task.id, isComplete: !task.isComplete })" />
-
-                    <div class="task-list__task-texts">
-                        <span class="task-list__task-title">
-                            <span>{{ task.title }}</span>
-
-                            <span class="task-list__task-separator"></span>
-
-                            <span class="task-list__task-date">
-                                <Icon icon="material-symbols:calendar-today-outline" width="12" height="12" />
-                                {{ dateToText(task.createdAt) }}
-                            </span>
-                        </span>
-                        <span class="task-list__task-description">{{ task.description }}</span>
-                    </div>
-                </div>
-
-                <Icon icon="mi:chevron-right" width="20" height="20" class="task-list__task-arrow" />
-            </button>
-
-        </div>
+        <AnimatePresence>
+            <motion.div v-if="tasksStore.tasks.length === 0 && !tasksStore.status.getTasks.isLoading"
+                :initial="{ opacity: 0, y: -10 }" :animate="{ opacity: 1, y: 0 }" :exit="{ opacity: 0, y: -10 }"
+                :transition="{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }">
+                <TasksEmptystateComponent />
+            </motion.div>
+        </AnimatePresence>
 
 
+        <LayoutGroup>
+
+
+            <motion.div class="task-list__list" layout>
+
+                <AnimatePresence>
+
+                    <motion.div v-for="task in tasksStore.filteredTasks" :key="task.id"
+                        :initial="{ opacity: 0, scale: 0.95, y: 10 }" :animate="{ opacity: 1, scale: 1, y: 0 }"
+                        :exit="{ opacity: 0, scale: 0.9, y: -10 }"
+                        :transition="{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }" layout>
+
+                        <button class="task-list__task" @click="tasksStore.selectTask(task.id)"
+                            :class="{ 'task-list__task--active': task.id === tasksStore?.selectedTask?.id }">
+                            <div class=" task-list__task-content">
+
+                                <button class="task-list__checkbox-button"
+                                    :class="{ 'task-list__checkbox-button--active': task.isComplete }" type="button"
+                                    :disabled='tasksStore.status.updateTask.isLoading'
+                                    @click.stop="() => toggleCompletedTask({ id: task.id, isComplete: !task.isComplete })" />
+
+                                <div class="task-list__task-texts">
+                                    <span class="task-list__task-title">
+                                        <span class="task-list__task-title-text">{{ task.title }}</span>
+
+                                        <span class="task-list__task-separator"></span>
+
+                                        <span class="task-list__task-date">
+                                            <Icon icon="material-symbols:calendar-today-outline" width="12"
+                                                height="12" />
+                                            {{ dateToText(task.createdAt) }}
+                                        </span>
+                                    </span>
+                                    <p class="task-list__task-description">{{ task.description }}</p>
+                                </div>
+                            </div>
+
+                            <Icon icon="mi:chevron-right" width="20" height="20" class="task-list__task-arrow" />
+
+                        </button>
+
+                    </motion.div>
+
+
+
+
+                </AnimatePresence>
+            </motion.div>
+
+        </LayoutGroup>
     </section>
 </template>
 
@@ -127,6 +155,8 @@ function toggleCompletedTask({ id, isComplete }: { id: number, isComplete: boole
 
     &__list {
         margin: 12px 0 0;
+        display: flex;
+        flex-direction: column;
     }
 
     &__task {
@@ -157,6 +187,7 @@ function toggleCompletedTask({ id, isComplete }: { id: number, isComplete: boole
         &-content {
             display: flex;
             gap: 12px;
+            max-width: 100%;
             align-items: flex-start;
         }
 
@@ -164,10 +195,10 @@ function toggleCompletedTask({ id, isComplete }: { id: number, isComplete: boole
             display: flex;
             flex-direction: column;
             max-width: 100%;
+            overflow: hidden;
             gap: 2px;
         }
 
-        //TODO ARREGLAR PARA QUE EL MAX-WIDTH SEA VARIABLE
 
         &-title {
             font-size: 0.9rem;
@@ -176,12 +207,21 @@ function toggleCompletedTask({ id, isComplete }: { id: number, isComplete: boole
             display: flex;
             align-items: center;
             gap: 8px;
+            max-width: 100%;
+
+            &-text {
+                max-width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                text-align: left;
+            }
         }
 
         &-description {
             font-size: 0.85rem;
             color: var(--neutral-500);
-            max-width: 50ch;
+            max-width: 100%;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -194,6 +234,7 @@ function toggleCompletedTask({ id, isComplete }: { id: number, isComplete: boole
             gap: 4px;
             font-size: 0.75rem;
             color: var(--neutral-400);
+            text-wrap: nowrap;
         }
 
         &-separator {
