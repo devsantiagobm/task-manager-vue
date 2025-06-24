@@ -32,6 +32,10 @@ defineEmits<{ (e: "click"): void }>()
     font-size: 0.9rem;
     cursor: pointer;
     transition: background-color .2s ease, color .2s ease, outline .2s ease;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     &[disabled]{
         cursor: not-allowed;

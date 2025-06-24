@@ -12,7 +12,14 @@ import TasksEmptystateComponent from './tasks-emptystate-.component.vue';
 const tasksStore = useTasksStore()
 
 onMounted(() => {
-    tasksStore.getTasks()
+
+    toast.promise(tasksStore.getTasks(), {
+        loading: "Loading tasks…",
+        // success: () => ,
+        error: () => "Something went wrong while loading tasks.",
+    });
+
+
 })
 
 const title = computed(() => {
@@ -46,6 +53,11 @@ function toggleCompletedTask({ id, isComplete }: { id: number, isComplete: boole
     });
 }
 
+function handleActivateCreateMode() {
+    tasksStore.clearSelectedTask();
+    tasksStore.setIsCreatingTask(true);
+}
+
 </script>
 
 <template>
@@ -58,7 +70,7 @@ function toggleCompletedTask({ id, isComplete }: { id: number, isComplete: boole
 
 
     <section class="task-list__content">
-        <ButtonAtom variant="outline" class="task-list__create-button" @click="tasksStore.clearSelectedTask">
+        <ButtonAtom variant="outline" class="task-list__create-button" @click="handleActivateCreateMode">
             <Icon icon="mi:add" width="20" height="20" />
             <span>Add New Task</span>
         </ButtonAtom>
@@ -136,6 +148,10 @@ function toggleCompletedTask({ id, isComplete }: { id: number, isComplete: boole
         gap: 16px;
         align-items: center;
         margin: 0 0 24px;
+
+        @media screen and (max-width: $breakpoint-tablet) {
+            display: none;
+        }
 
     }
 

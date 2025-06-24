@@ -2,6 +2,7 @@
 import NavbarComponent from '@/modules/tasks/components/navbar.component.vue';
 import TasksListComponent from '@/modules/tasks/components/tasks-list.component.vue';
 import TasksFormComponent from '../components/tasks-form.component.vue';
+import { AnimatePresence } from 'motion-v';
 </script>
 
 <template>
@@ -16,7 +17,9 @@ import TasksFormComponent from '../components/tasks-form.component.vue';
         </main>
 
         <section class="tasks__form">
-            <TasksFormComponent />
+            <AnimatePresence>
+                <TasksFormComponent />
+            </AnimatePresence>
         </section>
     </div>
 </template>
@@ -32,6 +35,17 @@ import TasksFormComponent from '../components/tasks-form.component.vue';
     gap: 20px;
     max-width: 100%;
 
+    @media screen and (max-width: $breakpoint-laptop) {
+        grid-template-columns: .65fr 1.2fr;
+    }
+
+    @media screen and (max-width: $breakpoint-tablet) {
+        grid-template-areas: "navbar" "content";
+        grid-template-columns: 1fr;
+        max-height: fit-content;
+        height: fit-content;
+    }
+
     &__navbar,
     &__content,
     &__form {
@@ -43,6 +57,11 @@ import TasksFormComponent from '../components/tasks-form.component.vue';
         scrollbar-width: thin;
         scrollbar-gutter: stable;
         scrollbar-color: var(--neutral-300) transparent;
+
+        @media screen and (max-width: $breakpoint-tablet) {
+            scrollbar-gutter: unset;
+            overflow-y: hidden;
+        }
     }
 
     &__navbar {
@@ -55,6 +74,11 @@ import TasksFormComponent from '../components/tasks-form.component.vue';
 
     &__form {
         grid-area: form;
+
+        @media screen and (max-width: $breakpoint-laptop) {
+            padding: 0;
+            position: fixed;
+        }
     }
 
 }

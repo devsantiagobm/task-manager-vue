@@ -9,6 +9,7 @@ export type FilterType = 'all' | 'completed' | 'pending'
 interface State {
     tasks: Task[]
     selectedTaskId: number | null,
+    isCreatingTask: boolean;
     status: {
         getTasks: { isLoading: boolean; error: string | null }
         createTask: { isLoading: boolean; error: string | null }
@@ -30,7 +31,8 @@ export const useTasksStore = defineStore("tasks", {
         },
         selectedTaskId: null,
         searchQuery: "",
-        filterType: "all"
+        filterType: "all",
+        isCreatingTask: false
     }),
 
     getters: {
@@ -68,11 +70,15 @@ export const useTasksStore = defineStore("tasks", {
     },
 
     actions: {
-        selectTask(id: number) {
-            this.selectedTaskId = id;
+        selectTask(value: number) {
+            this.selectedTaskId = value;
+        },
+        setIsCreatingTask(value: boolean) {
+            this.isCreatingTask = value
         },
         clearSelectedTask() {
             this.selectedTaskId = null;
+            this.isCreatingTask = false
         },
         setFilterType(filter: FilterType) {
             this.filterType = filter
@@ -90,8 +96,8 @@ export const useTasksStore = defineStore("tasks", {
                 })
                 this.tasks = response.data.map(getTasksAdapter)
             } catch (err: any) {
-                //TODO TIPAR BIEN ESTO y MOSTRAR EL ERROR CORRECTAMENTE
                 this.status.getTasks.error = err.message || 'Error fetching tasks'
+                throw err
             } finally {
                 this.status.getTasks.isLoading = false
             }
