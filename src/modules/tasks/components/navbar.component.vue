@@ -2,8 +2,29 @@
 import { Icon } from '@iconify/vue';
 import { useTasksStore, type FilterType } from '../stores/tasks.store';
 import { computed } from 'vue';
+import { motion } from 'motion-v';
 
 const tasksStore = useTasksStore()
+
+const title = computed(() => {
+    const titles = {
+        all: "All Tasks",
+        completed: "Completed Tasks",
+        pending: "Pending Tasks"
+    }
+
+    return titles[tasksStore.filterType]
+})
+
+const amountOfTasks = computed(() => {
+    const filter = tasksStore.filterType
+
+    if (filter === 'all') return tasksStore.taskStats.total
+    if (filter === 'completed') return tasksStore.taskStats.completed
+    if (filter === 'pending') return tasksStore.taskStats.pending
+
+    return 0
+})
 
 const filters = computed(() => [
     {
@@ -27,15 +48,24 @@ const filters = computed(() => [
 ])
 
 
+
 </script>
 
 <template>
     <nav class="navbar">
-        <h3 class="navbar__title">Menu</h3>
+        <motion.header class="navbar__header" :initial="{ opacity: 0, y: -10 }" :animate="{ opacity: 1, y: 0 }"
+            :transition="{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }" :key="title">
+            <h1 class="navbar__title">{{ title }}</h1>
+            <span class="navbar__amount">{{ amountOfTasks }}</span>
+
+        </motion.header>
+
+        <h3 class="navbar__title navbar__title--small">Menu</h3>
 
         <label class="navbar__search">
             <Icon icon="lucide:search" />
-            <input type="text" class="navbar__search-input" placeholder="Search your tasks" @input="(e) => tasksStore.setSearchQuery((e.target as HTMLInputElement).value)">
+            <input type="text" class="navbar__search-input" placeholder="Search your tasks"
+                @input="(e) => tasksStore.setSearchQuery((e.target as HTMLInputElement).value)">
         </label>
 
         <div class="navbar__tasks">
@@ -45,8 +75,9 @@ const filters = computed(() => [
                 <button class="navbar__button"
                     :class="{ 'navbar__button--active': filter.value === tasksStore.filterType }"
                     v-for="filter in filters" @click="() => tasksStore.setFilterType(filter.value as FilterType)">
+
                     <div class="navbar__button-content">
-                        <Icon :icon="filter.icon" width="18" height="18" />
+                        <Icon class="navbar__button-icon" :icon="filter.icon" width="18" height="18" />
                         <span>{{ filter.label }}</span>
                     </div>
 
@@ -65,12 +96,49 @@ const filters = computed(() => [
     padding: 1rem;
     border-radius: 1rem;
     background-color: var(--neutral-100);
+    max-width: 100%;
     width: 100%;
     height: 100%;
+
+    @media screen and (max-width: $breakpoint-tablet) {
+        padding: 0;
+        background-color: transparent;
+    }
+
+
+    &__header {
+        display: none;
+        gap: 16px;
+        align-items: center;
+        margin: 0 0 24px;
+
+        @media screen and (max-width: $breakpoint-tablet) {
+            display: flex;
+        }
+    }
+
+    &__amount {
+        padding: 4px 12px;
+        border-radius: 4px;
+        border: solid 1px var(--neutral-200);
+        font-weight: var(--font-weight-medium);
+        user-select: none;
+    }
 
     &__title {
         color: var(--neutral-700);
         font-size: 1.25rem;
+
+
+        @media screen and (max-width: $breakpoint-tablet) {
+            font-size: 1.75rem;
+            white-space: nowrap;
+            color: var(--neutral-900);
+
+            &--small {
+                display: none;
+            }
+        }
     }
 
     &__search {
@@ -105,12 +173,29 @@ const filters = computed(() => [
         font-size: .8rem;
         color: var(--neutral-700);
         margin: 0 0 8px;
+        
+        @media screen and (max-width: $breakpoint-tablet) {
+            display: none;
+        }
+
     }
 
     &__buttons-list {
         display: flex;
         flex-direction: column;
         gap: 4px;
+
+        @media screen and (max-width: $breakpoint-tablet) {
+            gap: 8px;
+            flex-direction: row;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+
+            &::-webkit-scrollbar {
+                display: none;
+            }
+        }
     }
 
     &__button {
@@ -124,6 +209,19 @@ const filters = computed(() => [
         color: var(--neutral-600);
         font-size: .85rem;
         transition: background-color .2s ease, color .2s ease;
+
+
+        @media screen and (max-width: $breakpoint-tablet) {
+            justify-content: center;
+            gap: 8px;
+            padding: 6px 12px;
+            text-wrap: nowrap;
+            border-radius: 120px;
+            font-size: .75rem;
+
+            border: solid 1px var(--neutral-300);
+
+        }
 
 
         &:hover,
@@ -147,6 +245,13 @@ const filters = computed(() => [
             font-weight: var(--font-weight-medium);
             transition: background-color .2s ease,
                 color .2s ease;
+        }
+
+        &-icon {
+
+            @media screen and (max-width: $breakpoint-tablet) {
+                display: none;
+            }
         }
 
 

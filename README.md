@@ -1,5 +1,26 @@
-# Vue 3 + TypeScript + Vite
+## Requisitos
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+- Node.js ≥ 18.x  
+- npm (7)  
+- Backend Laravel corriendo en `VITE_API_URL` (ej: `http://localhost:8000`)
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+---
+
+## Instalación y ejecución
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/devsantiagobm/task-manager-vue.git front-santiago-barrera
+cd front-santiago-barrera
+
+# 2. Instalar dependencias
+npm install
+
+
+# 3. Ejecutar en modo desarrollo
+npm run dev
+```
+
+Una vez el servidor esté corriendo, puedes probar la aplicación en:
+
+`http://localhost:5173`

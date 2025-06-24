@@ -7,15 +7,21 @@ import { toast } from 'vue-sonner';
 import { dateToText } from '@/utils/date-to-text.util';
 import { computed, watch } from 'vue';
 import { AnimatePresence, motion } from 'motion-v';
+import { useWindowSize } from '@/composables/use-window-size';
 
 interface Inputs {
     title: string;
     description: string;
 }
 
-
+const { width } = useWindowSize()
 const tasksStore = useTasksStore()
 const mustDisableButtons = computed(() => tasksStore.status.deleteTask.isLoading || tasksStore.status.updateTask.isLoading || tasksStore.status.createTask.isLoading)
+const mustShowForm = computed(() => {
+    if (width.value > 996) return true
+
+    return Boolean(tasksStore.selectedTask || tasksStore.isCreatingTask)
+})
 
 const { setValues, handleSubmit, errors, defineField, resetForm, } = useForm<Inputs>({
     validationSchema: {
@@ -56,6 +62,7 @@ const onSubmit = handleSubmit(async (values) => {
             loading: "Creating your task...",
             success: () => {
                 resetForm();
+                tasksStore.clearSelectedTask();
                 return "Task created successfully!";
             },
             error: () => "Something went wrong while creating the task.",
@@ -70,6 +77,7 @@ function deleteTask() {
         loading: "Deleting task...",
         success: () => {
             resetForm();
+            tasksStore.clearSelectedTask();
             return "Task deleted successfully.";
         },
         error: () => "Failed to delete the task. Please try again.",
@@ -95,120 +103,150 @@ watch(
 </script>
 
 <template>
-    <form class="task-form" novalidate @submit="onSubmit">
+    <motion.div v-if="mustShowForm" class="task-form" :initial="{ opacity: 0 }" :animate="{ opacity: 1 }"
+        :exit="{ opacity: 0 }">
 
-        <div class="task-form__content">
-            <div class="task-form__header">
-                <h3 class="task-form__title">{{ tasksStore.selectedTask ? "Update Task" : "New Task" }}</h3>
 
-                <button class="task-form__close" type="button">
-                    <Icon icon="si:close-fill" width="24" height="24" />
-                </button>
+        <form class="task-form__form" novalidate @submit="onSubmit">
 
+            <div class="task-form__content">
+                <div class="task-form__header">
+                    <h3 class="task-form__title">{{ tasksStore.selectedTask ? "Update Task" : "New Task" }}</h3>
+
+                    <button class="task-form__close" type="button" @click="tasksStore.clearSelectedTask">
+                        <Icon icon="si:close-fill" width="24" height="24" />
+                    </button>
+
+                </div>
+
+                <label>
+                    <input v-model="title" v-bind="titleAttrs" name="title" type="text" class="task-form__input"
+                        placeholder="What do you need to do?" :class="{ 'task-form__input--error': errors?.title }" />
+
+
+                    <AnimatePresence>
+                        <motion.span v-if="errors.title" class="task-form__input-error-message"
+                            :initial="{ maxHeight: 0, paddingTop: 0, opacity: 0 }"
+                            :animate="{ maxHeight: 'auto', paddingTop: 16, opacity: 1 }"
+                            :exit="{ maxHeight: 0, paddingTop: 0, opacity: 0 }"
+                            :transition="{ duration: 0.3, ease: 'easeInOut' }">
+
+                            <Icon icon="ri:error-warning-line" width="14" height="14" />
+                            <ErrorMessage name="title" />
+                        </motion.span>
+                    </AnimatePresence>
+                </label>
+
+
+                <dl class="task-form__metadata">
+                    <div class="task-form__row">
+                        <dt class="task-form__row-label">
+                            <Icon icon="lucide:calendar-plus" width="16" height="16" />
+                            <span>Created on</span>
+                        </dt>
+                        <dd class="task-form__row-value">{{ dateToText(tasksStore?.selectedTask?.createdAt ?? new
+                            Date()) }}
+                        </dd>
+                    </div>
+
+                    <div class="task-form__row">
+                        <dt class="task-form__row-label">
+                            <Icon icon="lucide:calendar-check-2" width="16" height="16" />
+                            <span>Last updated</span>
+                        </dt>
+                        <dd class="task-form__row-value">{{ dateToText(tasksStore?.selectedTask?.lastUpdated ?? new
+                            Date())
+                            }}</dd>
+                    </div>
+
+                    <div class="task-form__row">
+                        <dt class="task-form__row-label">
+                            <Icon icon="lucide:check-circle" width="16" height="16" />
+                            <span>Status</span>
+                        </dt>
+                        <div class="task-form__row-value task-form__status"
+                            :class="{ 'task-form__status--complete': tasksStore.selectedTask?.isComplete, 'task-form__status--pending': !tasksStore.selectedTask?.isComplete }">
+                            <Icon
+                                :icon="tasksStore.selectedTask?.isComplete ? 'mdi:check-circle-outline' : 'mdi:clock-outline'"
+                                width="14" height="14" />
+                            {{ tasksStore.selectedTask?.isComplete ? "Complete" : "Pending" }}
+                        </div>
+                    </div>
+                </dl>
+
+
+                <label>
+                    <textarea name="description" as="textarea" class="task-form__input task-form__input--textarea"
+                        placeholder="Write a brief description" v-model="description" v-bind="descriptionAttrs"
+                        :class="{ 'task-form__input--error': errors?.description }" />
+
+                    <AnimatePresence>
+                        <motion.span v-if="errors.description" class="task-form__input-error-message"
+                            :initial="{ maxHeight: 0, paddingTop: 0, opacity: 0 }"
+                            :animate="{ maxHeight: 'auto', paddingTop: 16, opacity: 1 }"
+                            :exit="{ maxHeight: 0, paddingTop: 0, opacity: 0 }"
+                            :transition="{ duration: 0.3, ease: 'easeInOut' }">
+
+                            <Icon icon="ri:error-warning-line" width="14" height="14" />
+                            <ErrorMessage name="description" />
+                        </motion.span>
+                    </AnimatePresence>
+                </label>
             </div>
 
-            <label>
-                <input v-model="title" v-bind="titleAttrs" name="title" type="text" class="task-form__input"
-                    placeholder="What do you need to do?" :class="{ 'task-form__input--error': errors?.title }" />
+            <motion.div class="task-form__buttons" :initial="{ opacity: 0, y: 10 }" :animate="{ opacity: 1, y: 0 }"
+                :key="typeof tasksStore?.selectedTask?.id" :transition="{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }">
 
+                <ButtonAtom :disabled="mustDisableButtons" @click="deleteTask" variant="outline" alignment="center"
+                    type="button" v-if="tasksStore.selectedTask">
+                    Delete Task
+                </ButtonAtom>
 
-                <AnimatePresence>
-                    <motion.span v-if="errors.title" class="task-form__input-error-message"
-                        :initial="{ maxHeight: 0, paddingTop: 0, opacity: 0 }"
-                        :animate="{ maxHeight: 'auto', paddingTop: 16, opacity: 1 }"
-                        :exit="{ maxHeight: 0, paddingTop: 0, opacity: 0 }"
-                        :transition="{ duration: 0.3, ease: 'easeInOut' }">
+                <ButtonAtom alignment="center" :disabled="mustDisableButtons">
+                    {{ tasksStore.selectedTask ? 'Save Changes' : 'Create Task' }}
+                </ButtonAtom>
+            </motion.div>
 
-                        <Icon icon="ri:error-warning-line" width="14" height="14" />
-                        <ErrorMessage name="title" />
-                    </motion.span>
-                </AnimatePresence>
-            </label>
-
-
-            <dl class="task-form__metadata">
-                <div class="task-form__row">
-                    <dt class="task-form__row-label">
-                        <Icon icon="lucide:calendar-plus" width="16" height="16" />
-                        <span>Created on</span>
-                    </dt>
-                    <dd class="task-form__row-value">{{ dateToText(tasksStore?.selectedTask?.createdAt ?? new Date()) }}
-                    </dd>
-                </div>
-
-                <div class="task-form__row">
-                    <dt class="task-form__row-label">
-                        <Icon icon="lucide:calendar-check-2" width="16" height="16" />
-                        <span>Last updated</span>
-                    </dt>
-                    <dd class="task-form__row-value">{{ dateToText(tasksStore?.selectedTask?.lastUpdated ?? new Date())
-                    }}</dd>
-                </div>
-
-                <div class="task-form__row">
-                    <dt class="task-form__row-label">
-                        <Icon icon="lucide:check-circle" width="16" height="16" />
-                        <span>Status</span>
-                    </dt>
-                    <div class="task-form__row-value task-form__status"
-                        :class="{ 'task-form__status--complete': tasksStore.selectedTask?.isComplete, 'task-form__status--pending': !tasksStore.selectedTask?.isComplete }">
-                        <Icon
-                            :icon="tasksStore.selectedTask?.isComplete ? 'mdi:check-circle-outline' : 'mdi:clock-outline'"
-                            width="14" height="14" />
-                        {{ tasksStore.selectedTask?.isComplete ? "Complete" : "Pending" }}
-                    </div>
-                </div>
-            </dl>
-
-
-            <label>
-                <textarea name="description" as="textarea" class="task-form__input task-form__input--textarea"
-                    placeholder="Write a brief description" v-model="description" v-bind="descriptionAttrs"
-                    :class="{ 'task-form__input--error': errors?.description }" />
-
-                <AnimatePresence>
-                    <motion.span v-if="errors.description" class="task-form__input-error-message"
-                        :initial="{ maxHeight: 0, paddingTop: 0, opacity: 0 }"
-                        :animate="{ maxHeight: 'auto', paddingTop: 16, opacity: 1 }"
-                        :exit="{ maxHeight: 0, paddingTop: 0, opacity: 0 }"
-                        :transition="{ duration: 0.3, ease: 'easeInOut' }">
-
-                        <Icon icon="ri:error-warning-line" width="14" height="14" />
-                        <ErrorMessage name="description" />
-                    </motion.span>
-                </AnimatePresence>
-            </label>
-        </div>
-
-        <motion.div class="task-form__buttons" :initial="{ opacity: 0, y: 10 }" :animate="{ opacity: 1, y: 0 }"
-            :key="typeof tasksStore?.selectedTask?.id" :transition="{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }">
-
-            <!-- TODO MODAL DE CONFIRMACION DE ELIMINAR -->
-            <ButtonAtom :disabled="mustDisableButtons" @click="deleteTask" variant="outline" alignment="center"
-                type="button" v-if="tasksStore.selectedTask">
-                Delete Task
-            </ButtonAtom>
-
-            <ButtonAtom alignment="center" :disabled="mustDisableButtons">
-                {{ tasksStore.selectedTask ? 'Save Changes' : 'Create Task' }}
-            </ButtonAtom>
-        </motion.div>
-
-    </form>
+        </form>
+    </motion.div>
 </template>
 
 
 <style scoped lang="scss">
 .task-form {
-    display: flex;
-    flex-direction: column;
-    padding: 1rem 1.25rem;
-    border-radius: 1rem;
-    background-color: var(--neutral-100);
-    width: 100%;
+    max-width: 100%;
     height: 100%;
-    gap: 16px;
-    max-height: 100%;
+
+    @media screen and (max-width: $breakpoint-laptop) {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background-color: color-mix(in srgb, var(--neutral-900) 80%, transparent);
+    }
+
+    &__form {
+        display: flex;
+        flex-direction: column;
+        padding: 1rem 1.25rem;
+        border-radius: 1rem;
+        background-color: var(--neutral-100);
+        gap: 16px;
+        height: 100%;
+        max-height: 100%;
+
+        @media screen and (max-width: $breakpoint-laptop) {
+            width: clamp(300px, 50dvw, 500px);
+            height: fit-content;
+        }
+
+        @media screen and (max-width: $breakpoint-tablet) {
+            width: clamp(300px, 80dvw, 500px);
+            height: fit-content;
+        }
+    }
+
+
 
     &__content {
         display: flex;
@@ -240,6 +278,11 @@ watch(
         align-items: center;
         font-size: .8rem;
         grid-template-columns: .6fr 1fr;
+        
+        @media screen and (max-width: $breakpoint-mobile) {
+            display: flex;
+            justify-content: space-between;
+        }
 
         &-label {
             display: flex;
@@ -287,8 +330,11 @@ watch(
         @media (hover:hover) {
             &:hover {
                 background-color: var(--neutral-200);
-
             }
+        }
+
+        @media screen and (max-width: $breakpoint-laptop) {
+            display: block;
         }
     }
 
@@ -332,6 +378,10 @@ watch(
             resize: none;
             min-height: 30dvh;
             field-sizing: content;
+
+            @media screen and (max-width: $breakpoint-laptop) {
+                min-height: 20dvh;
+            }
         }
 
         &-error-message {

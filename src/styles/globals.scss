@@ -1,3 +1,6 @@
+@use "./variables.scss" as *;
+
+
 :root {
 
     --red-500: hsl(0, 91%, 71%);
@@ -35,11 +38,19 @@
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
+
+
 }
 
-::selection{
+::selection {
     background-color: var(--yellow-500);
     color: var(--neutral-0);
+}
+
+html {
+    @media screen and (min-width: $breakpoint-tv) {
+        font-size: 20px;
+    }
 }
 
 body {
@@ -49,4 +60,5 @@ body {
     font-style: normal;
     color: var(--neutral-900);
     background-color: var(--neutral-50);
+
 }
